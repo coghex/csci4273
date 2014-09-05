@@ -7,12 +7,18 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <signal.h>
 //the size of all my buffers cause im lazy
 #define BUFSIZE 2048
+
+void handle_sigchild(int sig) {
+  while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
+}
 
 //the nodes in the list that will hold all of the servers
 struct server {
   int port;
+  int pid;
   struct server* next;
   char* name;
 };
@@ -49,12 +55,26 @@ void addserver(char * name, int port) {
   strcpy(node->name, name);
 }
 
+void setpid(int port, int pid) {
+  struct server *node = head;
+  while(node->port != port) {
+    node=node->next;
+    if (node->next == NULL) {
+      break;
+    }
+  }
+  if (node->port == port) {
+    node->pid = pid;
+  }
+}
+
 //removes a server from the list and rearranges the list
 void termsession(int p) {
   struct server *node = head;
   while(node->next->port != p) {
     node=node->next;
   }
+  kill(node->next->pid, 9);
   if (node->next->next != NULL) {
     node->next = node->next->next;
   }
@@ -71,6 +91,16 @@ int main (int argc, char *argv[0]) {
   int ret, i, j, p;
   int tcpport=31337;
   socklen_t slen, clen, tcpslen, tcpclen;
+
+  //registering the child process handler
+  struct sigaction sa;
+  sa.sa_handler = &handle_sigchild;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+  if (sigaction(SIGCHLD, &sa, 0) == -1) {
+    perror(0);
+    exit(1);
+  }
 
   //first i allocate all of the buffers
   //all of this is super hacky c code because yolo
@@ -171,13 +201,18 @@ int main (int argc, char *argv[0]) {
       tcpconnfd = accept(tcpsockfd, (struct sockaddr*)&tcpcaddr, &tcpclen);
       printf("starting server %s on port %d\n", arg, tcpport);
       //fork a new session to do whatevs
+      snprintf(sendbuf, BUFSIZE, "The Chat server is now running on port %d\n", tcpport);
+      sendto(sockfd, sendbuf, BUFSIZE, 0, (struct sockaddr *)&caddr, sizeof(caddr));
+      memset(sendbuf, 0, BUFSIZE);
+
       if (!(pid = fork())) {
-        snprintf(sendbuf, BUFSIZE, "The Chat server is now running on port %d\n", tcpport);
-        sendto(sockfd, sendbuf, BUFSIZE, 0, (struct sockaddr *)&caddr, sizeof(caddr));
-        close(sockfd);
+        char *serverargs[1] = {NULL};
+        execv("chat_server", serverargs);
         while(1);
       }
       else {
+        //we want to remember the pid
+        setpid(tcpport, pid);
         close(tcpconnfd);
         //increment the tcp port by one, it would be tough to run out
         tcpport++;
