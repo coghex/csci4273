@@ -11,8 +11,11 @@
 //the size of all my buffers cause im lazy
 #define BUFSIZE 2048
 
+//BRAAAAAINS!
 void handle_sigchild(int sig) {
   while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
+  //silly -Wall warnings, i need this variable
+  sig++;
 }
 
 //the nodes in the list that will hold all of the servers
@@ -90,7 +93,7 @@ int main (int argc, char *argv[0]) {
   char* buf, *cmd, *arg, *sendbuf;
   int ret, i, j, p;
   int tcpport=31337;
-  socklen_t slen, clen, tcpslen, tcpclen;
+  socklen_t clen, tcpclen;
 
   //registering the child process handler
   struct sigaction sa;
@@ -206,9 +209,13 @@ int main (int argc, char *argv[0]) {
       memset(sendbuf, 0, BUFSIZE);
 
       if (!(pid = fork())) {
-        char *serverargs[1] = {NULL};
+        close(sockfd);
+        //passes in the open tcp socket so that our server doesnt have
+        //to cat /proc/self/fd or lsof or something stupid like that
+        sprintf(arg, "%d", tcpsockfd);
+        char *serverargs[2] = {arg, NULL};
         execv("chat_server", serverargs);
-        while(1);
+        exit(0);
       }
       else {
         //we want to remember the pid
