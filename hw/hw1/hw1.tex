@@ -210,14 +210,14 @@ you are not sure if they are going to send or not at any given time.
     includes propegation delay of 10.  With three switches, like in this setup, the delay will
     be:
     \[
-      4\cdot120\mu\text{s} + 4\cdot10\mu\text{s} = 520\mu\text{s}
+      120\mu\text{s} + 4\cdot10\mu\text{s} = 160\mu\text{s}
     \]
     The acknowledgement will take half a microsecond per link to be sent.  this means that
     the delay is:
     \[
-      4\cdot0.5\mu\text{s} + 4\cdot10\mu\text{s} = 42\mu\text{s}
+      4\mu\text{s} + 4\cdot10\mu\text{s} = 44\mu\text{s}
     \]
-    for a grand total of $562\mu$s.  12000 bits in $562\mu$s is 21.35Mbps.
+    for a grand total of $204\mu$s.  12000 bits in $204\mu$s is 58.8Mbps.
   \item{}
     \[
       \frac{100\cdot4.7}{12\text{ hours}} = 93.46\text{ Mbps}
