@@ -199,12 +199,9 @@ int main (int argc, char *argv[0]) {
         close(tcpport);
         goto cleanup;
       }
-      //accept on that port
-      tcpclen = sizeof(tcpcaddr);
-      tcpconnfd = accept(tcpsockfd, (struct sockaddr*)&tcpcaddr, &tcpclen);
       printf("starting server %s on port %d\n", arg, tcpport);
       //fork a new session to do whatevs
-      snprintf(sendbuf, BUFSIZE, "The Chat server is now running on port %d\n", tcpport);
+      snprintf(sendbuf, BUFSIZE, "%d\n", tcpport);
       sendto(sockfd, sendbuf, BUFSIZE, 0, (struct sockaddr *)&caddr, sizeof(caddr));
       memset(sendbuf, 0, BUFSIZE);
 
