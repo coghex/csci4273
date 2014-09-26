@@ -14,6 +14,8 @@
 #include <signal.h>
 #include <time.h>
 #include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #define BUFSIZE 2048
 #define TCPSIZE 512
 #define MAXUSERS 512
@@ -30,7 +32,9 @@ struct message {
 };
 
 int main(int argc, char *argv[]) {
-  int fd, pid, i, j, k;
+  fd_set set;
+  int fd, pid, i, j, k, parentport, myport, ret;
+  struct timeval timeout;
   int childfd;
   int clientlen;
   struct sockaddr_in clientaddr;
@@ -71,15 +75,34 @@ int main(int argc, char *argv[]) {
   memset(sendbuf, 0, BUFSIZE);
   memset((char*)&clientaddr, 0, sizeof(clientaddr));
 
-  if (argc > 1) {
+  if (argc > 3) {
     printf("silly wall arguments\n");
   }
-  buf = (char*)malloc(BUFSIZE);
   fd = atoi(argv[0]);
+  parentport = atoi(argv[2]);
+  myport = atoi(argv[3]);
   clientlen = sizeof(clientaddr);
   if (listen(fd, 10) < 0) {
     printf("cannot listen\n");
   }
+  *start = clock();
+  if (!(pid = fork())) {
+    diff = clock() - *start;
+    if (diff/CLOCKS_PER_SEC > 60) {
+      //kill urself bro
+      printf("bye cruel world\n");
+      fd=socket(AF_INET, SOCK_DGRAM, 0);
+      bzero(&clientaddr, sizeof(clientaddr));
+      clientaddr.sin_family = AF_INET;
+      clientaddr.sin_addr.s_addr = inet_addr("0.0.0.0");
+      clientaddr.sin_port=htons(parentport);
+      sprintf(sendbuf, "Terminate %d\n", myport);
+      sendto(fd, sendbuf, strlen(sendbuf), 0,
+          (struct sockaddr *)&clientaddr,sizeof(clientaddr));
+      exit(0);
+    }
+  }
+
   while(1) {
     if ((childfd = accept(fd, (struct sockaddr *) &clientaddr, (socklen_t*)&clientlen)) < 0) {
       printf("cannot accept, %s\n", strerror(errno));
@@ -91,7 +114,6 @@ int main(int argc, char *argv[]) {
       if (hostp == NULL) {
         printf("cannot find host\n");
       }
-      *start = clock();
       struct user curuser;
       curuser.id = *usernum;
       curuser.lastmsg = 0;
@@ -101,31 +123,36 @@ int main(int argc, char *argv[]) {
       //sendto(childfd, sendbuf, BUFSIZE, 0, (struct sockaddr *)&clientaddr, sizeof(clientaddr));
 
       while(1) {
-        diff = clock() - *start;
-        if (diff/CLOCKS_PER_SEC > 60) {
-          //Change this to a terminate
-          break;
-        }
         memset(buf, 0, BUFSIZE);
-        read(childfd, buf, TCPSIZE);
+        memset(sendbuf, 0, BUFSIZE);
+        memset(cmd, 0, BUFSIZE);
+        memset(arg1, 0, BUFSIZE);
+        memset(arg2, 0, BUFSIZE);
 
-        for(i=0;(buf[i]!=0x20)&&(buf[i]!=0x00)&&(buf[i]!='\n');i++);
-        cmd = (char*)memcpy(cmd, buf, i);
-        for(j=i+1;(buf[j]!=0x20)&&(buf[j]!=0x00)&&(buf[j]!='\n');j++);
-        arg1 = (char*)memcpy(arg1, buf+i+1, j-i);
-        for(k=j+1;(buf[k]!=0x00)&&(buf[k]!=0x0d);k++);
-        arg2 = (char*)memcpy(arg2, buf+j+1, k-j);
+        //timeout.tv_sec=0;
+        //timeout.tv_usec=10000;
+        //ret = select(childfd, &set, NULL, NULL, &timeout);
+        //if (ret == -1) {
+        //  printf("select error\n");
+        //}
+        //else if (ret != 0) {
+          read(childfd, buf, TCPSIZE);
+          for(i=0;(buf[i]!=0x20)&&(buf[i]!=0x00)&&(buf[i]!='\n');i++);
+          cmd = (char*)memcpy(cmd, buf, i);
+          for(j=i+1;(buf[j]!=0x20)&&(buf[j]!=0x00)&&(buf[j]!='\n');j++);
+          arg1 = (char*)memcpy(arg1, buf+i+1, j-i);
+          for(k=j+1;(buf[k]!=0x00)&&(buf[k]!=0x0d);k++);
+          arg2 = (char*)memcpy(arg2, buf+j+1, k-j);
+        //}
 
         if (!strcmp(cmd, "Submit")) {
           *start = clock();
-          //snprintf(sendbuf, BUFSIZE, "oh hai, we recieved your message %s\n", arg2);
-          //sendto(childfd, sendbuf, BUFSIZE, 0, (struct sockaddr *)&clientaddr, sizeof(clientaddr));
           struct message newmsg;
           newmsg.authorid = curuser.id;
           newmsg.length = atoi(arg1);
-          memcpy(newmsg.text, arg2, newmsg.length);
           newmsg.time = time(NULL);
           strncpy(newmsg.text, arg2, atoi(arg1));
+          newmsg.text[newmsg.length] = 0;
           history[*msg] = newmsg;
           (*msg)++;
         }
@@ -163,12 +190,6 @@ int main(int argc, char *argv[]) {
           }
           users[curuser.id].lastmsg = *msg;
         }
-
-        memset(buf, 0, BUFSIZE);
-        memset(sendbuf, 0, BUFSIZE);
-        memset(cmd, 0, BUFSIZE);
-        memset(arg1, 0, BUFSIZE);
-        memset(arg2, 0, BUFSIZE);
       }
       shmdt(history);
       shmdt(users);

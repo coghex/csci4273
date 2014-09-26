@@ -57,6 +57,8 @@ int main(int argc, char *argv[]) {
     memset(udprecbuf, 0, 128);
     memset(tcpsendbuf, 0, 128);
     memset(tcprecbuf, 0, 2048);
+    memset(silly, 0, 128);
+    memset(current, 0, 128);
 
     while(1) {
       c = getchar();
@@ -120,8 +122,6 @@ int main(int argc, char *argv[]) {
       strcat(tcpsendbuf, arg);
       sendto(tcpfd, tcpsendbuf, strlen(tcpsendbuf), 0,
           (struct sockaddr *)&tcpservaddr,sizeof(tcpservaddr));
-      n=recvfrom(tcpfd, tcprecbuf, 2048, 0, NULL, NULL);
-      tcprecbuf[n]=0;
     }
     if (!strcmp(cmd, "GetNext")) {
       strcpy(tcpsendbuf, "GetNext");
@@ -137,7 +137,13 @@ int main(int argc, char *argv[]) {
           (struct sockaddr *)&tcpservaddr,sizeof(tcpservaddr));
       n=recvfrom(tcpfd, tcprecbuf, 2048, 0, NULL, NULL);
       tcprecbuf[n]=0;
-      printf("%s", tcprecbuf);
+      j=atoi(tcprecbuf);
+      for(k=0;k<j;k++) {
+        //printf("gonna recv %d times", atoi(tcprecbuf));
+        n=recvfrom(tcpfd, tcprecbuf, 2048, 0, NULL, NULL);
+        tcprecbuf[n]=0;
+        printf("%s", tcprecbuf);
+      }
     }
 
     if (!strcmp(cmd, "Leave")) {
