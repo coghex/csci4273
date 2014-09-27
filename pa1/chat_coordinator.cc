@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <signal.h>
+#include <string.h>
 //the size of all my buffers cause im lazy
 #define BUFSIZE 2048
 

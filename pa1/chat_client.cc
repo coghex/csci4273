@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   char current[128];
   cmd = (char*)malloc(128);
   arg = (char*)malloc(128);
-  input = (char*)malloc(128);
+  input = (char*)malloc(1024);
   udpsendbuf = (char*)malloc(128);
   udprecbuf = (char*)malloc(128);
   tcpsendbuf = (char*)malloc(128);
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
   while(1) {
     i=0;
-    memset(input, 0, 128);
+    memset(input, 0, 1024);
     memset(cmd, 0, 128);
     memset(arg, 0, 128);
     memset(udpsendbuf, 0, 128);
@@ -58,7 +58,6 @@ int main(int argc, char *argv[]) {
     memset(tcpsendbuf, 0, 128);
     memset(tcprecbuf, 0, 2048);
     memset(silly, 0, 128);
-    memset(current, 0, 128);
 
     while(1) {
       c = getchar();
@@ -70,7 +69,7 @@ int main(int argc, char *argv[]) {
         i++;
       }
     }
-    for(j=0;(input[j]!='\n')&&(input[j]!=0x20);j++);
+    for(j=0;(input[j]!='\n')&&(input[j]!=0x20)&&(input[j]!=0x0a)&&(input[j]!=0x00)&&(input[j]!=3);j++);
     cmd = (char *)memcpy(cmd, input, j);
     for(k=j+1;(input[k]!='\n')&&(input[k]!=0x00)&&(input[k]!=0x0d);k++);
     arg = (char*)memcpy(arg, input+j+1, k-j);
@@ -82,11 +81,23 @@ int main(int argc, char *argv[]) {
           (struct sockaddr *)&udpservaddr,sizeof(udpservaddr));
       n=recvfrom(udpfd, udprecbuf, 128, 0, NULL, NULL);
       udprecbuf[n]=0;
+     
+      sleep(1);
+      memset(input, 0, 1024);
+      memset(cmd, 0, 128);
+      memset(udpsendbuf, 0, 128);
+      memset(udprecbuf, 0, 128);
+      memset(tcpsendbuf, 0, 128);
+      memset(tcprecbuf, 0, 2048);
+      memset(silly, 0, 128);
+ 
+      strcpy(udpsendbuf, "Find ");
+      strcat(udpsendbuf, arg);
+      sendto(udpfd, udpsendbuf, strlen(udpsendbuf), 0,
+          (struct sockaddr *)&udpservaddr,sizeof(udpservaddr));
+      n=recvfrom(udpfd, udprecbuf, 128, 0, NULL, NULL);
+      udprecbuf[n]=0;
 
-      if (!strcmp(udprecbuf, "-1")) {
-        printf("a server by that name is already running\n");
-        continue;
-      }
       bzero(&tcpservaddr,sizeof(tcpservaddr));
       tcpservaddr.sin_family = AF_INET;
       tcpservaddr.sin_addr.s_addr=inet_addr(argv[1]);
@@ -95,6 +106,7 @@ int main(int argc, char *argv[]) {
       connect(tcpfd, (struct sockaddr *)&tcpservaddr, sizeof(tcpservaddr));
       memset(current, 0, 128);
       strcpy(current, arg);
+
       printf("A new chat session %s has been created and you have joined this session\n", arg);
     }
     if (!strcmp(cmd, "Join")) {
@@ -169,7 +181,6 @@ int main(int argc, char *argv[]) {
   free(udprecbuf);
   free(tcpsendbuf);
   free(tcprecbuf);
-  free(current);
 
   return 0;
 }

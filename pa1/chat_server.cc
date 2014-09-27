@@ -43,7 +43,6 @@ int main(int argc, char *argv[]) {
   struct tm *nowtime;
   int hisid, usrid, msgid, unid, timerid;
   clock_t diff;
-
   //Variables that need to be global used shard mem
   hisid = shmget(IPC_PRIVATE, BUFSIZE*sizeof(struct message), SHM_R | SHM_W);
   struct message *history = (struct message *)shmat(hisid, NULL, 0);
@@ -85,24 +84,6 @@ int main(int argc, char *argv[]) {
   if (listen(fd, 10) < 0) {
     printf("cannot listen\n");
   }
-  *start = clock();
-  if (!(pid = fork())) {
-    diff = clock() - *start;
-    if (diff/CLOCKS_PER_SEC > 60) {
-      //kill urself bro
-      printf("bye cruel world\n");
-      fd=socket(AF_INET, SOCK_DGRAM, 0);
-      bzero(&clientaddr, sizeof(clientaddr));
-      clientaddr.sin_family = AF_INET;
-      clientaddr.sin_addr.s_addr = inet_addr("0.0.0.0");
-      clientaddr.sin_port=htons(parentport);
-      sprintf(sendbuf, "Terminate %d\n", myport);
-      sendto(fd, sendbuf, strlen(sendbuf), 0,
-          (struct sockaddr *)&clientaddr,sizeof(clientaddr));
-      exit(0);
-    }
-  }
-
   while(1) {
     if ((childfd = accept(fd, (struct sockaddr *) &clientaddr, (socklen_t*)&clientlen)) < 0) {
       printf("cannot accept, %s\n", strerror(errno));
@@ -137,11 +118,11 @@ int main(int argc, char *argv[]) {
         //}
         //else if (ret != 0) {
           read(childfd, buf, TCPSIZE);
-          for(i=0;(buf[i]!=0x20)&&(buf[i]!=0x00)&&(buf[i]!='\n');i++);
+          for(i=0;(buf[i]!=0x20)&&(buf[i]!=0x00)&&(buf[i]!='\n')&&(buf[i]!=0x0d);i++);
           cmd = (char*)memcpy(cmd, buf, i);
-          for(j=i+1;(buf[j]!=0x20)&&(buf[j]!=0x00)&&(buf[j]!='\n');j++);
+          for(j=i+1;(buf[j]!=0x20)&&(buf[j]!=0x00)&&(buf[j]!='\n'&&(buf[j]!=0x0d));j++);
           arg1 = (char*)memcpy(arg1, buf+i+1, j-i);
-          for(k=j+1;(buf[k]!=0x00)&&(buf[k]!=0x0d);k++);
+          for(k=j+1;(buf[k]!=0x00)&&(buf[k]!=0x0d&&(buf[k]!=0x20)&&(buf[k]!='\n')&&(buf[k]!=3)&&(buf[k]!=4));k++);
           arg2 = (char*)memcpy(arg2, buf+j+1, k-j);
         //}
 

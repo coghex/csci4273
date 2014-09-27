@@ -1,0 +1,4 @@
+Vince Coghlan
+
+This is the chat server, can be compiled by typing in make.  All of the parts
+work except the 60 second timeout.
