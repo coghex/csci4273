@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
           cmd = (char*)memcpy(cmd, buf, i);
           for(j=i+1;(buf[j]!=0x20)&&(buf[j]!=0x00)&&(buf[j]!='\n'&&(buf[j]!=0x0d));j++);
           arg1 = (char*)memcpy(arg1, buf+i+1, j-i);
-          for(k=j+1;(buf[k]!=0x00)&&(buf[k]!=0x0d&&(buf[k]!=0x20)&&(buf[k]!='\n')&&(buf[k]!=3)&&(buf[k]!=4));k++);
+          for(k=j+1;(buf[k]!=0x00)&&(buf[k]!=0x0d&&(buf[k]!='\n')&&(buf[k]!=3)&&(buf[k]!=4));k++);
           arg2 = (char*)memcpy(arg2, buf+j+1, k-j);
         //}
 
