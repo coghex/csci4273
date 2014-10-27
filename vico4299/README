@@ -1,0 +1,4 @@
+Vince Coghlan
+
+To compile type make, first run the echoServer, then the client in a seperate
+window.  everything works.
