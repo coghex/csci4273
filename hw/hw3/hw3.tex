@@ -1,0 +1,204 @@
+\documentclass[12pt, notitlepage, final]{article} 
+
+\newcommand{\name}{Vince Coghlan}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{enumerate}
+\usepackage{amsthm}
+\usepackage{nccmath}
+\usepackage{setspace}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\usepackage[siunitx]{circuitikz}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{cancel}
+\usepackage{pgfplots}
+\usepackage{setspace}
+\usepackage{overpic}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+
+\numberwithin{equation}{section}
+\DeclareRobustCommand{\beginProtected}[1]{\begin{#1}}
+\DeclareRobustCommand{\endProtected}[1]{\end{#1}}
+\newcommand{\dbr}[1]{d_{\mbox{#1BR}}}
+\newtheorem{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{define}{Definition}
+\newcommand{\column}[2]{
+\left( \begin{array}{ccc}
+#1 \\
+#2
+\end{array} \right)}
+
+\newdimen\digitwidth
+\settowidth\digitwidth{0}
+\def~{\hspace{\digitwidth}}
+
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.0in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+\newcommand{\answer}[1]{\newpage\noindent\framebox{\vbox{{\bf CSCI 4273 Fall 2014} 
+\hfill {\bf \name} \vspace{-1cm}
+\begin{center}{Homework \#3}\end{center} } }\bigskip }
+
+%absolute value code
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+\def\dbar{{\mathchar'26\mkern-12mu d}}
+\def \Frac{\displaystyle\frac}
+\def \Sum{\displaystyle\sum}
+\def \Int{\displaystyle\int}
+\def \Prod{\displaystyle\prod}
+\def \P[x]{\Frac{\partial}{\partial x}}
+\def \D[x]{\Frac{d}{dx}}
+\newcommand{\PD}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\PF}[1]{\frac{\partial}{\partial#1}}
+\newcommand{\DD}[2]{\frac{d#1}{d#2}}
+\newcommand{\DF}[1]{\frac{d}{d#1}}
+\newcommand{\fix}[2]{\left(#1\right)_#2}
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\braket}[2]{\langle #1 | #2 \rangle}
+\newcommand{\bopk}[3]{\langle #1 | #2 | #3 \rangle}
+\newcommand{\Choose}[2]{\displaystyle {#1 \choose #2}}
+\newcommand{\proj}[1]{\ket{#1}\bra{#1}}
+\def\del{\vec{\nabla}}
+\newcommand{\avg}[1]{\langle#1\rangle}
+\newcommand{\piecewise}[4]{\left\{\beginProtected{array}{rl}#1&:#2\\#3&:#4\endProtected{array}\right.}
+\newcommand{\systeme}[2]{\left\{\beginProtected{array}{rl}#1\\#2\endProtected{array}\right.}
+\def \KE{K\!E}
+\def\Godel{G$\ddot{\mbox{o}}$del}
+
+\onehalfspacing
+
+\begin{document}
+
+\answer{}
+
+\textbf{1:} In the 4B/5B encoding (see Table 2.4), only two of the 5-bit codes used end
+in two 0s. How many possible 5-bit sequences are there (used by the existing
+code or not) that meet the stronger restriction of having at most one leading
+and at most one trailing 0? Could all 4-bit sequences be mapped to such 5-bit
+sequences?
+
+\textbf{2:} Show the 4B/5B encoding, and the resulting NRZI signal, for the following
+bit sequence: 1110 0101 0000 0011
+
+\textbf{3:} Assuming a framing protocol that uses bit stuffing, show the bit sequence
+transmitted over the link when the frame contains the following bit sequence: 110101111101011111101011111110
+Mark the stuffed bits.
+
+\textbf{4:} Suppose that one byte in a buffer covered by the Internet checksum algorithm
+needs to be decremented (e.g., a header hop count field). Give an algorithm
+to compute the revised checksum without rescanning the entire buffer. Your
+algorithm should consider whether the byte in question is low order or high
+order
+
+\textbf{5:} Suppose we want to transmit the message 11100011 and protect it from errors
+using the CRC polynomial $x^3 + 1$.
+\begin{enumerate}[(a)]
+  \item{}Use polynomial long division to determine the message that should be
+  transmitted\\
+  \item{}Suppose the leftmost bit of the message is inverted due to noise on the
+  transmission link. What is the result of the receiver’s CRC calculation?
+  How does the receiver know that an error has occurred?\\
+\end{enumerate}
+
+\textbf{6:} Suppose you are designing a sliding window protocol for a 1-Mbps point-to-point
+link to the moon, which has a one-way latency of 1.25 seconds. Assuming
+that each frame carries 1 KB of data, what is the minimum number of bits you
+need for the sequence number?
+
+\textbf{7:} Suppose that we attempt to run the sliding window algorithm with SWS =
+RWS = 3 and with MaxSeqNum = 5. The $N$th packet DATA[$N$] thus actually contains
+N mod 5 in its sequence number field. Give an example in
+which the algorithm becomes confused, that is, a scenario in which the receiver
+expects DATA[5] and accepts DATA[0]—which has the same transmitted sequence number—in
+its stead. No packets may arrive out of order. Note this
+implies MaxSeqNum $\geq 6$ is necessary as well as sufficient.
+
+\textbf{8:} Suppose the round-trip propagation delay for Ethernet is $46.4 \mu s$. This yields
+a minimum packet size of 512 bits (464 bits corresponding to propagation
+delay + 48 bits of jam signal).
+\begin{enumerate}[(a)]
+  \item{}What happens to the minimum packet size if the delay time is held constant,
+    and the signaling rate rises to 100 Mbps?\\
+  \item{}What are the drawbacks to so large a minimum packet size?\\
+  \item{}If compatibility were not an issue, how might the specifications be written
+so as to permit a smaller minimum packet size?\\
+\end{enumerate}
+
+\textbf{9:} How can a wireless node interfere with the communications of another node
+when the two nodes are separated by a distance greater than the transmission
+range of either node?
+
+\textbf{10:} How can hidden terminals be detected in
+802.11 networks?
+
+\textbf{11:} Using the example network given in Figure 3.30, give the virtual circuit
+tables for all the switches after each of the following connections is established.
+Assume that the sequence of connections is cumulative, that is, the first connection
+is still up when the second connection is established, and so on. Also
+assume that the VCI assignment always picks the lowest unused VCI on each
+link, starting with 0.
+\begin{enumerate}[(a)]
+  \item{}Host A connects to host B.\\
+  \item{}Host C connects to host G.\\
+  \item{}Host E connects to host I.\\
+  \item{}Host D connects to host B.\\
+  \item{}Host F connects to host J.\\
+  \item{} Host H connects to host A.\\
+\end{enumerate}
+
+\textbf{12:} Give forwarding tables for switches S1–S4 in Figure 3.32. Each switch should
+have a “default” routing entry, chosen to forward packets with unrecognized destination
+addresses toward OUT. Any specific-destination table entries duplicated by the default
+entry should then be eliminated.
+
+\textbf{13:} Consider hosts X, Y, Z, W and learning bridges B1, B2, B3, with initially
+empty forwarding tables, as in Figure 3.36.
+\begin{enumerate}[(a)]
+  \item{}Suppose X sends to Z. Which bridges learn where X is? Does Y’s network
+  interface see this packet?\\
+  \item{}Suppose Z now sends to X. Which bridges learn where Z is? Does Y’s
+  network interface see this packet?\\
+  \item{}Suppose Z now sends to X. Which bridges learn where Z is? Does Y’s
+  network interface see this packet?\\
+  \item{}Finally, suppose Z sends to Y. Which bridges learn where Z is? Does W’s
+  network interface see this packet?\\
+\end{enumerate}
+
+\textbf{14:} Suppose two learning bridges B1 and B2 form a loop as shown in Figure 3.38,
+and do \emph{not} implement the spanning tree algorithm. Each bridge maintains a
+single table of <\emph{address}, \emph{interface}> pairs.
+\begin{enumerate}[(a)]
+  \item{}What will happen if M sends to L?\\
+  \item{}Suppose a short while later L replies to M. Give a sequence of events that
+leads to one packet from M and one packet from L circling the loop in
+opposite directions.\\
+\end{enumerate}
+
+
+\end{document}
